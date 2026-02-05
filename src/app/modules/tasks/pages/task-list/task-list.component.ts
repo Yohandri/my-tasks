@@ -1,4 +1,4 @@
-import { Component, OnInit, OnDestroy } from '@angular/core';
+import { Component, OnInit, OnDestroy, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { Router } from '@angular/router';
@@ -71,22 +71,25 @@ import { TaskDeleteDialogComponent } from './task-delete-dialog.component';
             </mat-form-field>
 
             <button mat-raised-button color="primary" type="submit" 
-                    [disabled]="taskForm.invalid || isLoading">
-              <mat-icon>add</mat-icon>
-              Add
+                    [disabled]="taskForm.invalid || isLoading()">
+              <mat-spinner *ngIf="isLoading()" diameter="20"></mat-spinner>
+              <span class="btn-add" *ngIf="!isLoading()">
+                <mat-icon>add</mat-icon>
+                Add
+              </span>
             </button>
           </div>
         </form>
       </mat-card>
 
       <!-- Loading Spinner -->
-      <div *ngIf="isLoading" class="loading-container">
+      <div *ngIf="isLoading()" class="loading-container">
         <mat-spinner></mat-spinner>
       </div>
 
       <!-- Task List -->
-      <div *ngIf="!isLoading" class="task-list">
-        <mat-card *ngFor="let task of tasks; trackBy: trackByTaskId" class="task-card"
+      <div *ngIf="!isLoading()" class="task-list">
+        <mat-card *ngFor="let task of tasks(); trackBy: trackByTaskId" class="task-card"
                   [class.completed]="task.completed">
           <div class="task-content">
             <mat-checkbox [checked]="task.completed" 
@@ -112,7 +115,7 @@ import { TaskDeleteDialogComponent } from './task-delete-dialog.component';
         </mat-card>
 
         <!-- Empty State -->
-        <div *ngIf="tasks.length === 0" class="empty-state">
+        <div *ngIf="tasks().length === 0" class="empty-state">
           <mat-icon>check_circle</mat-icon>
           <p>No tasks yet. Add your first task above!</p>
         </div>
@@ -141,6 +144,24 @@ import { TaskDeleteDialogComponent } from './task-delete-dialog.component';
     .add-task-card {
       margin-bottom: 24px;
       padding: 20px;
+    }
+
+    .add-task-card button[mat-raised-button] {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      min-width: 100px;
+    }
+
+    .add-task-card mat-spinner {
+      display: inline-block;
+    }
+
+    .btn-add {
+      display: flex;
+      align-items: center;
+      gap: 8px;
     }
 
     .form-row {
@@ -259,13 +280,13 @@ import { TaskDeleteDialogComponent } from './task-delete-dialog.component';
 })
 export class TaskListComponent implements OnInit, OnDestroy {
   /** Tasks array */
-  tasks: Task[] = [];
+  tasks = signal<Task[]>([]);
 
   /** Task form */
   taskForm: FormGroup;
 
-  /** Loading state */
-  isLoading = false;
+  /** Loading state signal */
+  isLoading = signal(false);
 
   /** Destroy subject for cleanup */
   private destroy$ = new Subject<void>();
@@ -316,18 +337,18 @@ export class TaskListComponent implements OnInit, OnDestroy {
    * @returns {void}
    */
   loadTasks(): void {
-    this.isLoading = true;
+    this.isLoading.set(true);
     this.taskService.getTasks()
       .pipe(takeUntil(this.destroy$))
       .subscribe({
         next: (tasks) => {
-          this.tasks = tasks.sort((a, b) => 
+          this.tasks.set(tasks.sort((a, b) => 
             new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
-          );
-          this.isLoading = false;
+          ));
+          this.isLoading.set(false);
         },
         error: (error) => {
-          this.isLoading = false;
+          this.isLoading.set(false);
           this.snackBar.open('Failed to load tasks', 'Close', { duration: 3000 });
         }
       });
@@ -341,19 +362,19 @@ export class TaskListComponent implements OnInit, OnDestroy {
     if (this.taskForm.invalid) return;
 
     const { title, description } = this.taskForm.value;
-    this.isLoading = true;
+    this.isLoading.set(true);
 
     this.taskService.createTask({ title, description: description || '' })
       .pipe(takeUntil(this.destroy$))
       .subscribe({
         next: (task) => {
-          this.tasks.unshift(task);
+          this.tasks.update(tasks => [task, ...tasks]);
           this.taskForm.reset();
-          this.isLoading = false;
+          this.isLoading.set(false);
           this.snackBar.open('Task created', 'Close', { duration: 2000 });
         },
         error: (error) => {
-          this.isLoading = false;
+          this.isLoading.set(false);
           this.snackBar.open('Failed to create task', 'Close', { duration: 3000 });
         }
       });
@@ -370,10 +391,9 @@ export class TaskListComponent implements OnInit, OnDestroy {
       .pipe(takeUntil(this.destroy$))
       .subscribe({
         next: (updatedTask) => {
-          const index = this.tasks.findIndex(t => t.id === updatedTask.id);
-          if (index !== -1) {
-            this.tasks[index] = updatedTask;
-          }
+          this.tasks.update(tasks => 
+            tasks.map(t => t.id === updatedTask.id ? updatedTask : t)
+          );
         },
         error: (error) => {
           this.snackBar.open('Failed to update task', 'Close', { duration: 3000 });
@@ -399,10 +419,9 @@ export class TaskListComponent implements OnInit, OnDestroy {
           description: result.description
         }).pipe(takeUntil(this.destroy$)).subscribe({
           next: (updatedTask) => {
-            const index = this.tasks.findIndex(t => t.id === updatedTask.id);
-            if (index !== -1) {
-              this.tasks[index] = updatedTask;
-            }
+            this.tasks.update(tasks => 
+              tasks.map(t => t.id === updatedTask.id ? updatedTask : t)
+            );
             this.snackBar.open('Task updated', 'Close', { duration: 2000 });
           },
           error: (error) => {
@@ -430,7 +449,7 @@ export class TaskListComponent implements OnInit, OnDestroy {
           .pipe(takeUntil(this.destroy$))
           .subscribe({
             next: () => {
-              this.tasks = this.tasks.filter(t => t.id !== task.id);
+              this.tasks.update(tasks => tasks.filter(t => t.id !== task.id));
               this.snackBar.open('Task deleted', 'Close', { duration: 2000 });
             },
             error: (error) => {

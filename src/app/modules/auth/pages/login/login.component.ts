@@ -157,7 +157,6 @@ export class LoginComponent {
 
     this.authService.login({ email }).subscribe({
       next: (res: LoginResponse) => {
-        console.log('Login successful:', res);
         if (res.token) {
           this.router.navigate(['/tasks']);
         } else {
