@@ -18,6 +18,8 @@ export interface User {
 export interface LoginRequest {
   /** User email address */
   email: string;
+  success?: boolean;
+  create?: boolean; // Flag to indicate if user should be created if not found
 }
 
 /**

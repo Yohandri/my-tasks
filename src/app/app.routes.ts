@@ -1,5 +1,5 @@
 import { Routes } from "@angular/router";
-import { guestGuard } from "./infrastructure/guards/auth.guard";
+import { authGuard, guestGuard } from "./infrastructure/guards/auth.guard";
 
 export const routes: Routes = [
     {
@@ -13,6 +13,13 @@ export const routes: Routes = [
         loadComponent: () => import('./modules/auth/pages/login/login.component')
             .then(m => m.LoginComponent),
         canActivate: [guestGuard]
+    },
+    /** Tasks page - requires authentication */
+    {
+        path: 'tasks',
+        loadComponent: () => import('./modules/tasks/pages/task-list/task-list.component')
+            .then(m => m.TaskListComponent),
+        canActivate: [authGuard]
     },
     {
         path: "home",

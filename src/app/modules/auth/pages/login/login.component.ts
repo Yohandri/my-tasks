@@ -12,6 +12,8 @@ import { Inject, effect } from '@angular/core';
 
 import { AuthService } from '../../../../infrastructure/services/auth.service';
 
+import { LoginResponse } from '../../../../core/models/user.model';
+
 /** Dialog data interface */
 interface DialogData {
   email: string;
@@ -154,8 +156,14 @@ export class LoginComponent {
     const { email } = this.loginForm.value;
 
     this.authService.login({ email }).subscribe({
-      next: () => {
-        this.router.navigate(['/tasks']);
+      next: (res: LoginResponse) => {
+        console.log('Login successful:', res);
+        if (res.token) {
+          this.router.navigate(['/tasks']);
+        } else {
+          this.showCreateUserDialog(email);
+        }
+        this.isLoading.set(false);
       },
       error: (error) => {
         this.isLoading.set(false);
@@ -180,10 +188,12 @@ export class LoginComponent {
       data: { email }
     });
 
+    const create = true; // Flag to indicate user creation
+
     dialogRef.afterClosed().subscribe((result) => {
       if (result === true) {
         /** Create user and login */
-        this.authService.login({ email }).subscribe({
+        this.authService.login({ email, create }).subscribe({
           next: () => {
             this.router.navigate(['/tasks']);
           },
@@ -225,6 +235,7 @@ export class LoginComponent {
   styles: [`
     mat-card { padding: 16px; }
     mat-card-content { margin-top: 16px; }
+    button { margin-left: 8px; }
   `]
 })
 export class CreateUserDialogComponent {
