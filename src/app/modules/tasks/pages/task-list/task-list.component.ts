@@ -1,4 +1,4 @@
-import { Component, OnInit, OnDestroy, signal } from '@angular/core';
+import { Component, OnInit, OnDestroy, signal, ViewChild, ElementRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { Router } from '@angular/router';
@@ -59,15 +59,24 @@ import { TaskDeleteDialogComponent } from './task-delete-dialog.component';
           <div class="form-row">
             <mat-form-field appearance="outline" class="title-field">
               <mat-label>New Task</mat-label>
-              <input matInput formControlName="title" placeholder="What needs to be done?">
+              <input matInput #titleInput formControlName="title" placeholder="What needs to be done?">
               <mat-error *ngIf="taskForm.get('title')?.hasError('required')">
                 Title is required
+              </mat-error>
+              <mat-error *ngIf="taskForm.get('title')?.hasError('maxlength')">
+                Title must be at most 20 characters
+              </mat-error>
+              <mat-error *ngIf="taskForm.get('title')?.hasError('pattern')">
+                Title can only contain letters, numbers, and spaces
               </mat-error>
             </mat-form-field>
 
             <mat-form-field appearance="outline" class="desc-field">
               <mat-label>Description (optional)</mat-label>
               <input matInput formControlName="description" placeholder="Add details...">
+              <mat-error *ngIf="taskForm.get('description')?.hasError('maxlength')">
+              Description must be at most 50 characters
+            </mat-error>
             </mat-form-field>
 
             <button mat-raised-button color="primary" type="submit" 
@@ -288,6 +297,9 @@ export class TaskListComponent implements OnInit, OnDestroy {
   /** Loading state signal */
   isLoading = signal(false);
 
+  /** ViewChild for title input */
+  @ViewChild('titleInput') titleInput!: ElementRef<HTMLInputElement>;
+
   /** Destroy subject for cleanup */
   private destroy$ = new Subject<void>();
 
@@ -300,17 +312,23 @@ export class TaskListComponent implements OnInit, OnDestroy {
     private dialog: MatDialog
   ) {
     this.taskForm = this.fb.group({
-      title: ['', [Validators.required, Validators.maxLength(100)]],
-      description: ['', Validators.maxLength(500)]
+      title: ['', [Validators.required, Validators.maxLength(20), Validators.pattern('^[a-zA-Z0-9 ]+$')]],
+      description: ['', Validators.maxLength(50)]
     });
   }
 
   /**
-   * Initialize component - load tasks
+   * Initialize component - load tasks and focus title input
    * @returns {void}
    */
   ngOnInit(): void {
     this.loadTasks();
+    // Focus title input after view is ready
+    setTimeout(() => {
+      if (this.titleInput) {
+        this.titleInput.nativeElement.focus();
+      }
+    }, 0);
   }
 
   /**
@@ -372,6 +390,12 @@ export class TaskListComponent implements OnInit, OnDestroy {
           this.taskForm.reset();
           this.isLoading.set(false);
           this.snackBar.open('Task created', 'Close', { duration: 2000 });
+          // Focus title input after task creation
+          setTimeout(() => {
+            if (this.titleInput) {
+              this.titleInput.nativeElement.focus();
+            }
+          }, 0);
         },
         error: (error) => {
           this.isLoading.set(false);

@@ -51,7 +51,10 @@ export interface TaskEditDialogResult {
             Title is required
           </mat-error>
           <mat-error *ngIf="editForm.get('title')?.hasError('maxlength')">
-            Title must be at most 100 characters
+            Title must be at most 20 characters
+          </mat-error>
+          <mat-error *ngIf="editForm.get('title')?.hasError('pattern')">
+            Title can only contain letters, numbers, and spaces
           </mat-error>
         </mat-form-field>
 
@@ -60,7 +63,7 @@ export interface TaskEditDialogResult {
           <mat-label>Description</mat-label>
           <textarea matInput formControlName="description" placeholder="Task description" rows="3"></textarea>
           <mat-error *ngIf="editForm.get('description')?.hasError('maxlength')">
-            Description must be at most 500 characters
+            Description must be at most 50 characters
           </mat-error>
         </mat-form-field>
       </form>
@@ -123,8 +126,8 @@ export class TaskEditDialogComponent implements OnInit {
     @Inject(MAT_DIALOG_DATA) public data: TaskEditDialogData
   ) {
     this.editForm = this.fb.group({
-      title: ['', [Validators.required, Validators.maxLength(100)]],
-      description: ['', Validators.maxLength(500)]
+      title: ['', [Validators.required, Validators.maxLength(20), Validators.pattern('^[a-zA-Z0-9 ]+$')]],
+      description: ['', Validators.maxLength(50)]
     });
   }
 
