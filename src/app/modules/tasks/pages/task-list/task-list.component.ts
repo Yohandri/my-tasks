@@ -18,6 +18,9 @@ import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatDialogModule, MatDialog } from '@angular/material/dialog';
 import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
 
+import { TaskEditDialogComponent, TaskEditDialogResult } from './task-edit-dialog.component';
+import { TaskDeleteDialogComponent } from './task-delete-dialog.component';
+
 /**
  * Task List Component
  * Displays and manages user's tasks with CRUD operations
@@ -272,7 +275,8 @@ export class TaskListComponent implements OnInit, OnDestroy {
     private taskService: TaskService,
     private authService: AuthService,
     private router: Router,
-    private snackBar: MatSnackBar
+    private snackBar: MatSnackBar,
+    private dialog: MatDialog
   ) {
     this.taskForm = this.fb.group({
       title: ['', [Validators.required, Validators.maxLength(100)]],
@@ -378,16 +382,22 @@ export class TaskListComponent implements OnInit, OnDestroy {
   }
 
   /**
-   * Edit task - show dialog (simplified inline edit)
+   * Edit task - open edit dialog
    * @param {Task} task - Task to edit
    * @returns {void}
    */
   editTask(task: Task): void {
-    const newTitle = prompt('Edit title:', task.title);
-    if (newTitle && newTitle !== task.title) {
-      this.taskService.updateTask(task.id, { title: newTitle })
-        .pipe(takeUntil(this.destroy$))
-        .subscribe({
+    const dialogRef = this.dialog.open(TaskEditDialogComponent, {
+      width: '450px',
+      data: { task }
+    });
+
+    dialogRef.afterClosed().subscribe((result: TaskEditDialogResult | undefined) => {
+      if (result) {
+        this.taskService.updateTask(task.id, {
+          title: result.title,
+          description: result.description
+        }).pipe(takeUntil(this.destroy$)).subscribe({
           next: (updatedTask) => {
             const index = this.tasks.findIndex(t => t.id === updatedTask.id);
             if (index !== -1) {
@@ -399,28 +409,36 @@ export class TaskListComponent implements OnInit, OnDestroy {
             this.snackBar.open('Failed to update task', 'Close', { duration: 3000 });
           }
         });
-    }
+      }
+    });
   }
 
   /**
-   * Delete task
+   * Delete task - show confirmation dialog
    * @param {Task} task - Task to delete
    * @returns {void}
    */
   deleteTask(task: Task): void {
-    if (confirm(`Delete task "${task.title}"?`)) {
-      this.taskService.deleteTask(task.id)
-        .pipe(takeUntil(this.destroy$))
-        .subscribe({
-          next: () => {
-            this.tasks = this.tasks.filter(t => t.id !== task.id);
-            this.snackBar.open('Task deleted', 'Close', { duration: 2000 });
-          },
-          error: (error) => {
-            this.snackBar.open('Failed to delete task', 'Close', { duration: 3000 });
-          }
-        });
-    }
+    const dialogRef = this.dialog.open(TaskDeleteDialogComponent, {
+      width: '400px',
+      data: { task }
+    });
+
+    dialogRef.afterClosed().subscribe((confirmed: boolean | undefined) => {
+      if (confirmed) {
+        this.taskService.deleteTask(task.id)
+          .pipe(takeUntil(this.destroy$))
+          .subscribe({
+            next: () => {
+              this.tasks = this.tasks.filter(t => t.id !== task.id);
+              this.snackBar.open('Task deleted', 'Close', { duration: 2000 });
+            },
+            error: (error) => {
+              this.snackBar.open('Failed to delete task', 'Close', { duration: 3000 });
+            }
+          });
+      }
+    });
   }
 
   /**
