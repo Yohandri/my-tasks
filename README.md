@@ -9,7 +9,22 @@ Siéntete libre de clonar este repositorio y utilizarlo como base para el desarr
 De igual manera puedes documentar dentro de este archivo todo lo que deseas contar sobre tu desarrollo, como por ejemplo, decisiones de diseño, problemas encontrados, etc.
 
 ## Comentarios sobre el desarrollo
-...
+
+**Decisiones de diseño:**
+- Clean Architecture con separación de capas (core, infrastructure, modules)
+- Uso de standalone components de Angular 17
+- Inyección de dependencias basada en interfaces
+- Patrón de repository para abstracción de datos
+
+**Tecnologías utilizadas:**
+- Angular 17.3.6 con TypeScript strict mode
+- Angular Material para componentes UI
+- RxJS para programación reactiva
+
+**Comentarios clave:**
+- El proyecto sigue principios SOLID para facilitar el mantenimiento y escalabilidad
+- Se utiliza JWT para autenticación con interceptor HTTP
+- La estructura modular permite agregar nuevas funcionalidades de forma independiente
 
 ## Development server
 
