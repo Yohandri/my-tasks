@@ -4,7 +4,7 @@ import { Observable } from 'rxjs';
 
 import { TaskServiceInterface } from '../../core/services/task.service.interface';
 import { Task, CreateTaskRequest, UpdateTaskRequest } from '../../core/models/task.model';
-import { PaginatedResponse } from '../../core/models/api-response.model';
+import { ApiResponse, PaginatedResponse } from '../../core/models/api-response.model';
 import { environment } from '../../../environments/environment';
 
 /**
@@ -24,10 +24,10 @@ export class TaskService implements TaskServiceInterface {
 
   /**
    * Get all tasks for current user
-   * @returns {Observable<Task[]>} Array of tasks
+   * @returns {Observable<ApiResponse<{tasks: Task[]}>>} Response with tasks array
    */
-  getTasks(): Observable<Task[]> {
-    return this.http.get<Task[]>(this.apiUrl);
+  getTasks(): Observable<ApiResponse<{tasks: Task[]}>> {
+    return this.http.get<ApiResponse<{tasks: Task[]}>>(this.apiUrl);
   }
 
   /**
@@ -44,29 +44,29 @@ export class TaskService implements TaskServiceInterface {
   /**
    * Get single task by ID
    * @param {string} id - Task ID
-   * @returns {Observable<Task>} Task details
+   * @returns {Observable<ApiResponse<Task>>} Task details response
    */
-  getTask(id: string): Observable<Task> {
-    return this.http.get<Task>(`${this.apiUrl}/${id}`);
+  getTask(id: string): Observable<ApiResponse<Task>> {
+    return this.http.get<ApiResponse<Task>>(`${this.apiUrl}/${id}`);
   }
 
   /**
    * Create new task
    * @param {CreateTaskRequest} taskData - Task data
-   * @returns {Observable<Task>} Created task
+   * @returns {Observable<ApiResponse<{task: Task}>>} Created task response
    */
-  createTask(taskData: CreateTaskRequest): Observable<Task> {
-    return this.http.post<Task>(this.apiUrl, taskData);
+  createTask(taskData: CreateTaskRequest): Observable<ApiResponse<{task: Task}>> {
+    return this.http.post<ApiResponse<{task: Task}>>(this.apiUrl, taskData);
   }
 
   /**
    * Update existing task
    * @param {string} id - Task ID
    * @param {UpdateTaskRequest} taskData - Updated task data
-   * @returns {Observable<Task>} Updated task
+   * @returns {Observable<ApiResponse<{task: Task}>>} Updated task response
    */
-  updateTask(id: string, taskData: UpdateTaskRequest): Observable<Task> {
-    return this.http.put<Task>(`${this.apiUrl}/${id}`, taskData);
+  updateTask(id: string, taskData: UpdateTaskRequest): Observable<ApiResponse<{task: Task}>> {
+    return this.http.put<ApiResponse<{task: Task}>>(`${this.apiUrl}/${id}`, taskData);
   }
 
   /**
@@ -82,9 +82,9 @@ export class TaskService implements TaskServiceInterface {
    * Toggle task completion status
    * @param {string} id - Task ID
    * @param {boolean} completed - New completion status
-   * @returns {Observable<Task>} Updated task
+   * @returns {Observable<ApiResponse<{task: Task}>>} Updated task response
    */
-  toggleTaskCompletion(id: string, completed: boolean): Observable<Task> {
-    return this.http.put<Task>(`${this.apiUrl}/${id}`, { completed });
+  toggleTaskCompletion(id: string, completed: boolean): Observable<ApiResponse<{task: Task}>> {
+    return this.http.put<ApiResponse<{task: Task}>>(`${this.apiUrl}/${id}`, { completed });
   }
 }

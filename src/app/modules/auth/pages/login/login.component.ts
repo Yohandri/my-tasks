@@ -157,7 +157,7 @@ export class LoginComponent {
 
     this.authService.login({ email }).subscribe({
       next: (res: LoginResponse) => {
-        if (res.token) {
+        if (res.data.token) {
           this.router.navigate(['/tasks']);
         } else {
           this.showCreateUserDialog(email);

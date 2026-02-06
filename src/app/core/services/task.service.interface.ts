@@ -1,7 +1,7 @@
 import { Observable } from 'rxjs';
 
 import { Task, CreateTaskRequest, UpdateTaskRequest } from '../models/task.model';
-import { PaginatedResponse } from '../models/api-response.model';
+import { ApiResponse, PaginatedResponse } from '../models/api-response.model';
 
 /**
  * Task Service Interface
@@ -11,9 +11,9 @@ import { PaginatedResponse } from '../models/api-response.model';
 export interface TaskServiceInterface {
   /**
    * Get all tasks for current user
-   * @returns {Observable<Task[]>} Array of tasks
+   * @returns {Observable<ApiResponse<{tasks: Task[]}>>} Response with tasks array
    */
-  getTasks(): Observable<Task[]>;
+  getTasks(): Observable<ApiResponse<{tasks: Task[]}>>;
 
   /**
    * Get paginated tasks
@@ -26,24 +26,24 @@ export interface TaskServiceInterface {
   /**
    * Get single task by ID
    * @param {string} id - Task ID
-   * @returns {Observable<Task>} Task details
+   * @returns {Observable<ApiResponse<Task>>} Task details response
    */
-  getTask(id: string): Observable<Task>;
+  getTask(id: string): Observable<ApiResponse<Task>>;
 
   /**
    * Create new task
    * @param {CreateTaskRequest} taskData - Task data
-   * @returns {Observable<Task>} Created task
+   * @returns {Observable<ApiResponse<{task: Task}>>} Created task response
    */
-  createTask(taskData: CreateTaskRequest): Observable<Task>;
+  createTask(taskData: CreateTaskRequest): Observable<ApiResponse<{task: Task}>>;
 
   /**
    * Update existing task
    * @param {string} id - Task ID
    * @param {UpdateTaskRequest} taskData - Updated task data
-   * @returns {Observable<Task>} Updated task
+   * @returns {Observable<ApiResponse<{task: Task}>>} Updated task response
    */
-  updateTask(id: string, taskData: UpdateTaskRequest): Observable<Task>;
+  updateTask(id: string, taskData: UpdateTaskRequest): Observable<ApiResponse<{task: Task}>>;
 
   /**
    * Delete task
@@ -56,7 +56,7 @@ export interface TaskServiceInterface {
    * Toggle task completion status
    * @param {string} id - Task ID
    * @param {boolean} completed - New completion status
-   * @returns {Observable<Task>} Updated task
+   * @returns {Observable<ApiResponse<{task: Task}>>} Updated task response
    */
-  toggleTaskCompletion(id: string, completed: boolean): Observable<Task>;
+  toggleTaskCompletion(id: string, completed: boolean): Observable<ApiResponse<{task: Task}>>;
 }

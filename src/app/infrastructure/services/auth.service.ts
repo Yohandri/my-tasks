@@ -82,9 +82,9 @@ export class AuthService implements AuthServiceInterface {
    * @private
    */
   private setSession(response: LoginResponse): void {
-    localStorage.setItem('token', response.token);
-    localStorage.setItem('user', JSON.stringify(response.user));
-    this.currentUserSubject.next(response.user);
+    localStorage.setItem('token', response.data.token);
+    localStorage.setItem('user', JSON.stringify(response.data.user));
+    this.currentUserSubject.next(response.data.user);
   }
 
   /**

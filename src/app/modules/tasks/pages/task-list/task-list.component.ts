@@ -359,8 +359,8 @@ export class TaskListComponent implements OnInit, OnDestroy {
     this.taskService.getTasks()
       .pipe(takeUntil(this.destroy$))
       .subscribe({
-        next: (tasks) => {
-          this.tasks.set(tasks.sort((a, b) => 
+        next: (response) => {
+          this.tasks.set(response.data.tasks.sort((a, b) => 
             new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
           ));
           this.isLoading.set(false);
@@ -385,8 +385,8 @@ export class TaskListComponent implements OnInit, OnDestroy {
     this.taskService.createTask({ title, description: description || '' })
       .pipe(takeUntil(this.destroy$))
       .subscribe({
-        next: (task) => {
-          this.tasks.update(tasks => [task, ...tasks]);
+        next: (response) => {
+          this.tasks.update(tasks => [response.data.task, ...tasks]);
           this.taskForm.reset();
           this.isLoading.set(false);
           this.snackBar.open('Task created', 'Close', { duration: 2000 });
@@ -414,9 +414,9 @@ export class TaskListComponent implements OnInit, OnDestroy {
     this.taskService.toggleTaskCompletion(task.id, newStatus)
       .pipe(takeUntil(this.destroy$))
       .subscribe({
-        next: (updatedTask) => {
+        next: (response) => {
           this.tasks.update(tasks => 
-            tasks.map(t => t.id === updatedTask.id ? updatedTask : t)
+            tasks.map(t => t.id === response.data.task.id ? response.data.task : t)
           );
         },
         error: (error) => {
@@ -442,9 +442,9 @@ export class TaskListComponent implements OnInit, OnDestroy {
           title: result.title,
           description: result.description
         }).pipe(takeUntil(this.destroy$)).subscribe({
-          next: (updatedTask) => {
+          next: (response) => {
             this.tasks.update(tasks => 
-              tasks.map(t => t.id === updatedTask.id ? updatedTask : t)
+              tasks.map(t => t.id === response.data.task.id ? response.data.task : t)
             );
             this.snackBar.open('Task updated', 'Close', { duration: 2000 });
           },

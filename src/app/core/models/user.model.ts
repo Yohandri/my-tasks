@@ -27,8 +27,14 @@ export interface LoginRequest {
  * @interface LoginResponse
  */
 export interface LoginResponse {
-  /** JWT access token */
-  token: string;
-  /** User information */
-  user: User;
+  success: boolean;
+  message: string;
+  data: {
+    /// JWT access token
+    token: string;
+    // Token expiration time (e.g., "24h")
+    expiresIn: string;
+    // User information
+    user: User;
+  };
 }
